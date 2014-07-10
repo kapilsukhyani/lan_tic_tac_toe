@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">lan_tic_tac_toe</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <!-- main Activity -->
+    <string name="select_option">Select one of following option.</string>
+    <string name="join_game">Join Game</string>
+    <string name="start_game">Start Game</string>
+
+</resources>
