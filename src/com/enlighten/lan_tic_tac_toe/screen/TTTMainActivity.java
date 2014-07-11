@@ -18,7 +18,9 @@ import com.enlighten.lan_tic_tac_toe.Util;
 public class TTTMainActivity extends Activity implements View.OnClickListener {
 
 	private Button startGame, joinGame;
-	private RegistrationListener registrationListener = new RegistrationListener() {
+	public boolean startedDiscovery = false;
+
+	private class TTTRegistrationListener implements RegistrationListener {
 
 		@Override
 		public void onUnregistrationFailed(NsdServiceInfo serviceInfo,
@@ -39,6 +41,7 @@ public class TTTMainActivity extends Activity implements View.OnClickListener {
 		public void onServiceRegistered(NsdServiceInfo serviceInfo) {
 			Util.showToastOnUiThread(TTTMainActivity.this,
 					"Service registration succesful");
+			startedDiscovery = true;
 
 		}
 
@@ -51,7 +54,7 @@ public class TTTMainActivity extends Activity implements View.OnClickListener {
 		}
 	};
 
-	private DiscoveryListener discoveryListener = new DiscoveryListener() {
+	private class TTTDiscoveryListener implements DiscoveryListener {
 
 		@Override
 		public void onStopDiscoveryFailed(String serviceType, int errorCode) {
@@ -72,8 +75,10 @@ public class TTTMainActivity extends Activity implements View.OnClickListener {
 
 		@Override
 		public void onServiceFound(NsdServiceInfo serviceInfo) {
+			System.out.println("found " + serviceInfo);
 			if (serviceInfo.getServiceName().equals(TTTApplication.TTT_SERVICE)) {
 				NSDUtility.stopDiscovery(TTTMainActivity.this, this);
+				System.out.println("ip address " + serviceInfo.getHost());
 			}
 
 		}
@@ -133,11 +138,24 @@ public class TTTMainActivity extends Activity implements View.OnClickListener {
 
 	}
 
+	TTTRegistrationListener registrationListener = new TTTRegistrationListener();
+
 	private void startGame() {
 		NSDUtility.startAndRegisterService(this, registrationListener);
 	}
 
+	TTTDiscoveryListener discoveryListener = new TTTDiscoveryListener();
+
 	private void joinGame() {
 		NSDUtility.discoverService(TTTMainActivity.this, discoveryListener);
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		if (startedDiscovery) {
+			NSDUtility.unResgiterService(TTTMainActivity.this,
+					registrationListener);
+		}
 	}
 }
