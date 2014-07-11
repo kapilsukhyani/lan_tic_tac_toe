@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:layout_margin="50dp"
+    android:orientation="vertical"
+    android:weightSum="3" >
+
+    <TableRow
+        android:id="@+id/row1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:drawable/alert_dark_frame"
+        android:divider="@android:color/holo_red_dark"
+        android:orientation="horizontal"
+        android:showDividers="middle"
+        android:weightSum="3" >
+
+        <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
+            android:id="@+id/section1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:drawable/alert_light_frame" >
+        </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
+
+        <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
+            android:id="@+id/section2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:drawable/alert_light_frame" >
+        </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
+
+        <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
+            android:id="@+id/section3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:drawable/alert_light_frame" >
+        </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/row2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:drawable/alert_dark_frame"
+        android:divider="@android:color/holo_red_dark"
+        android:orientation="horizontal"
+        android:showDividers="middle"
+        android:weightSum="3" >
+
+        <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
+            android:id="@+id/section4"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:drawable/alert_light_frame" >
+        </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
+
+        <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
+            android:id="@+id/section5"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:drawable/alert_light_frame" >
+        </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
+
+        <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
+            android:id="@+id/section6"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:drawable/alert_light_frame" >
+        </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/row3"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:drawable/alert_dark_frame"
+        android:divider="@android:color/holo_red_dark"
+        android:orientation="horizontal"
+        android:showDividers="middle"
+        android:weightSum="3" >
+
+        <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
+            android:id="@+id/section7"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:drawable/alert_light_frame" >
+        </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
+
+        <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
+            android:id="@+id/section8"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:drawable/alert_light_frame" >
+        </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
+
+        <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
+            android:id="@+id/section9"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:drawable/alert_light_frame" >
+        </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
+    </TableRow>
+
+</TableLayout>

@@ -1,19 +1,26 @@
 package com.enlighten.lan_tic_tac_toe.view;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.Toast;
 
-public class TicTacToeBoard extends ViewGroup implements
-		GestureDetector.OnDoubleTapListener, OnTouchListener {
+import com.enlighten.lan_tic_tac_toe.OnRemoteChangeListener;
+import com.enlighten.lan_tic_tac_toe.R;
+
+public class TicTacToeBoard extends TableLayout implements
+		OnRemoteChangeListener {
 	private boolean locked = false;
-	private GestureDetector gestureDetector;
 	private TicTacToeSection[] sections = new TicTacToeSection[9];
+
+	public static enum UserType {
+		FirstUser, SecondUser
+	}
+
+	private UserType localUsertype;
 
 	public TicTacToeBoard(Context context) {
 		super(context);
@@ -25,71 +32,114 @@ public class TicTacToeBoard extends ViewGroup implements
 		init();
 	}
 
-	public TicTacToeBoard(Context context, AttributeSet attributeSet, int arg) {
-		super(context, attributeSet, arg);
-		init();
-	}
-
 	public void init() {
-		setOnTouchListener(this);
-		gestureDetector = new GestureDetector(getContext(), null);
-		gestureDetector.setOnDoubleTapListener(this);
-		int index = 1;
-		int row = 0, col = 0;
-		int rowCount = 3;
-		for (TicTacToeSection section : sections) {
-			if (index % rowCount == 0) {
-				row++;
-				col = 0;
-			}
-			section = new TicTacToeSection(getContext(), row, col);
-			addView(section);
+		if (!isInEditMode()) {
+			View board = ((LayoutInflater) getContext().getSystemService(
+					Context.LAYOUT_INFLATER_SERVICE)).inflate(
+					R.layout.tic_tac_toe_board, null);
+			View row1 = board.findViewById(R.id.row1);
+			View row2 = board.findViewById(R.id.row2);
+			View row3 = board.findViewById(R.id.row3);
+			// setLayoutParams(board.getLayoutParams());
+			((TableLayout) board).removeAllViews();
+			setOrientation(((TableLayout) board).getOrientation());
+			setWeightSum(((TableLayout) board).getWeightSum());
+			addView(row1);
+			addView(row2);
+			addView(row3);
+			int index1, index2, index3;
+			for (int i = 0; i < 3; i++) {
+				index1 = 0 + i;
+				index2 = 3 + i;
+				index3 = 6 + i;
+				sections[index1] = ((TicTacToeSection) ((TableRow) row1)
+						.getChildAt(i));
+				sections[index2] = ((TicTacToeSection) ((TableRow) row2)
+						.getChildAt(i));
+				sections[index3] = ((TicTacToeSection) ((TableRow) row3)
+						.getChildAt(i));
 
-			index++;
-			col++;
+				sections[index1].setBoard(this);
+				sections[index2].setBoard(this);
+				sections[index3].setBoard(this);
+
+				sections[index1].setSectionIndex(index1);
+				sections[index3].setSectionIndex(index2);
+				sections[index2].setSectionIndex(index3);
+			}
 
 		}
-	}
-
-	@Override
-	protected void onLayout(boolean changed, int l, int t, int r, int b) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	protected void onDraw(Canvas canvas) {
-		// TODO Auto-generated method stub
-		super.onDraw(canvas);
 	}
 
 	// locks the board, does not allow editing
-	public void lock() {
+	public synchronized void lock() {
 		locked = true;
 	}
 
-	@Override
-	public boolean onTouch(View v, MotionEvent event) {
-		if (!locked) {
-			this.gestureDetector.onTouchEvent(event);
-		}
-		return super.onTouchEvent(event);
+	public synchronized void unLock() {
+		locked = false;
+	}
+
+	public synchronized boolean isLocked() {
+		return locked;
+	}
+
+	/**
+	 * Start the game if you are first player, it will lock the board till next
+	 * user arrives
+	 */
+	public void startGame() {
+		this.localUsertype = UserType.FirstUser;
+		this.lock();
+	}
+
+	/**
+	 * Join the game if you are second user, it will notify the first user that
+	 * second user is ready, it will lock the board unless first user plays its
+	 * turn
+	 */
+	public void joinGame() {
+		this.localUsertype = UserType.SecondUser;
+		this.lock();
+		sendJoinedGameNotification();
+	}
+
+	private void sendJoinedGameNotification() {
+
 	}
 
 	@Override
-	public boolean onSingleTapConfirmed(MotionEvent e) {
-		return false;
+	public void onRemoteWon(int sectionNo) {
+		sections[sectionNo].onRemoteTap();
+		Toast.makeText(getContext(), "Remote user won the game", 3000).show();
+
 	}
 
 	@Override
-	public boolean onDoubleTap(MotionEvent e) {
-		// TODO Auto-generated method stub
-		return false;
+	public void onRemoteMarked(int sectionNo) {
+		sections[sectionNo].onRemoteTap();
+		this.unLock();
+
 	}
 
 	@Override
-	public boolean onDoubleTapEvent(MotionEvent e) {
-		return false;
+	public void onRemoteReady() {
+		this.unLock();
+	}
+
+	/**
+	 * Send mark command to remote user and locks the board
+	 * 
+	 * @param sectionNo
+	 *            section got marked
+	 */
+	public void sectionMarked(int sectionNo) {
+		this.lock();
+		sendSectionMarkedNotification(sectionNo);
+	}
+
+	private void sendSectionMarkedNotification(int sectionNo) {
+
 	}
 
 }

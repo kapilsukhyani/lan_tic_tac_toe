@@ -1,21 +1,93 @@
 package com.enlighten.lan_tic_tac_toe.screen;
 
-import com.enlighten.lan_tic_tac_toe.R;
-import com.enlighten.lan_tic_tac_toe.R.id;
-import com.enlighten.lan_tic_tac_toe.R.layout;
-import com.enlighten.lan_tic_tac_toe.R.menu;
-
 import android.app.Activity;
+import android.net.nsd.NsdManager.DiscoveryListener;
+import android.net.nsd.NsdManager.RegistrationListener;
+import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
-import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.enlighten.lan_tic_tac_toe.NSDUtility;
+import com.enlighten.lan_tic_tac_toe.R;
+import com.enlighten.lan_tic_tac_toe.TTTApplication;
+import com.enlighten.lan_tic_tac_toe.Util;
+
 public class TTTMainActivity extends Activity implements View.OnClickListener {
 
 	private Button startGame, joinGame;
+	private RegistrationListener registrationListener = new RegistrationListener() {
+
+		@Override
+		public void onUnregistrationFailed(NsdServiceInfo serviceInfo,
+				final int errorCode) {
+			Util.showToastOnUiThread(TTTMainActivity.this,
+					"Unregistration failed with error, " + errorCode);
+
+		}
+
+		@Override
+		public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
+			Util.showToastOnUiThread(TTTMainActivity.this,
+					"Service unregistration succesful");
+
+		}
+
+		@Override
+		public void onServiceRegistered(NsdServiceInfo serviceInfo) {
+			Util.showToastOnUiThread(TTTMainActivity.this,
+					"Service registration succesful");
+
+		}
+
+		@Override
+		public void onRegistrationFailed(NsdServiceInfo serviceInfo,
+				final int errorCode) {
+			Util.showToastOnUiThread(TTTMainActivity.this,
+					"Registratioin failed with error code " + errorCode);
+
+		}
+	};
+
+	private DiscoveryListener discoveryListener = new DiscoveryListener() {
+
+		@Override
+		public void onStopDiscoveryFailed(String serviceType, int errorCode) {
+			Util.showToastOnUiThread(TTTMainActivity.this,
+					"Stop discovery failed with error code, " + errorCode);
+		}
+
+		@Override
+		public void onStartDiscoveryFailed(String serviceType, int errorCode) {
+			Util.showToastOnUiThread(TTTMainActivity.this,
+					"Discovery failed with error code, " + errorCode);
+		}
+
+		@Override
+		public void onServiceLost(NsdServiceInfo serviceInfo) {
+			Util.showToastOnUiThread(TTTMainActivity.this, "Service lost");
+		}
+
+		@Override
+		public void onServiceFound(NsdServiceInfo serviceInfo) {
+			if (serviceInfo.getServiceName().equals(TTTApplication.TTT_SERVICE)) {
+				NSDUtility.stopDiscovery(TTTMainActivity.this, this);
+			}
+
+		}
+
+		@Override
+		public void onDiscoveryStopped(String serviceType) {
+			Util.showToastOnUiThread(TTTMainActivity.this, "Discover stopped");
+		}
+
+		@Override
+		public void onDiscoveryStarted(String serviceType) {
+			Util.showToastOnUiThread(TTTMainActivity.this, "Discovery started");
+		}
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +98,6 @@ public class TTTMainActivity extends Activity implements View.OnClickListener {
 
 		startGame.setOnClickListener(this);
 		joinGame.setOnClickListener(this);
-
 	}
 
 	@Override
@@ -63,11 +134,10 @@ public class TTTMainActivity extends Activity implements View.OnClickListener {
 	}
 
 	private void startGame() {
-
+		NSDUtility.startAndRegisterService(this, registrationListener);
 	}
 
 	private void joinGame() {
-		// TODO Auto-generated method stub
-
+		NSDUtility.discoverService(TTTMainActivity.this, discoveryListener);
 	}
 }
