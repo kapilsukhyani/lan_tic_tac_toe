@@ -7,8 +7,11 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Set;
 
+import android.util.Log;
+
 public class TTTNSDService {
 
+	private static final String TAG = TTTNSDService.class.getName();
 	private static ServerSocketChannel serverSocketChannel;
 	private static Thread selectorThread;
 
@@ -18,6 +21,7 @@ public class TTTNSDService {
 
 	public static boolean initializeServcie() {
 		try {
+			Log.d(TAG, "Initializing service");
 			serverSocketChannel = ServerSocketChannel.open();
 			serverSocketChannel.socket().bind(null);
 			serverSocketChannel.configureBlocking(false);
@@ -46,30 +50,15 @@ public class TTTNSDService {
 								if (selectionKey.interestOps() == SelectionKey.OP_ACCEPT) {
 									// got a new connection in server socket
 									// channel
+									Log.d(TAG, "Received new user connection");
 
 									SocketChannel clientSocketChannel = ((ServerSocketChannel) selectionKey
 											.channel()).accept();
 									if (null != clientSocketChannel) {
-										clientSocketChannel
-												.configureBlocking(false);
-										SelectionKey clientSocketSelectionKey = clientSocketChannel
-												.register(
-														selector,
-														SelectionKey.OP_READ
-																| selectionKey.OP_WRITE);
+										TTTCommunicationChannel
+												.initChannel(clientSocketChannel);
 
 									}
-
-								}
-
-								else {
-									// client socket is ready to be read or
-									// written
-
-									SocketChannel clientSocketChannel = (SocketChannel) selectionKey
-											.channel();
-									
-									
 
 								}
 
@@ -84,6 +73,9 @@ public class TTTNSDService {
 				}
 			});
 			selectorThread.start();
+			Log.d(TAG, "Service initialization completed");
+			Log.d(TAG, "Service started on "
+					+ serverSocketChannel.socket().getLocalPort());
 
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -10,15 +10,12 @@ import android.widget.Toast;
 
 import com.enlighten.lan_tic_tac_toe.OnRemoteChangeListener;
 import com.enlighten.lan_tic_tac_toe.R;
+import com.enlighten.lan_tic_tac_toe.TTTApplication.UserType;
 
 public class TicTacToeBoard extends TableLayout implements
 		OnRemoteChangeListener {
 	private boolean locked = false;
 	private TicTacToeSection[] sections = new TicTacToeSection[9];
-
-	public static enum UserType {
-		FirstUser, SecondUser
-	}
 
 	private UserType localUsertype;
 
