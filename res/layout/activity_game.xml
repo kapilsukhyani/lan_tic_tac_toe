@@ -5,15 +5,36 @@
     android:orientation="vertical"
     android:padding="30dp" >
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dip"
+        android:orientation="horizontal"
+        android:weightSum="2" >
+
+        <Button
+            android:id="@+id/client"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="client" />
+
+        <Button
+            android:id="@+id/server"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="server" />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_marginBottom="10dp"
         android:gravity="center"
-        android:text="@string/title" 
+        android:text="@string/title"
         android:textSize="20sp"
-        android:textStyle="bold|italic"/>
+        android:textStyle="bold|italic" />
 
     <com.enlighten.lan_tic_tac_toe.view.TicTacToeBoard
         android:id="@+id/board"

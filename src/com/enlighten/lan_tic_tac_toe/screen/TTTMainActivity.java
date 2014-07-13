@@ -2,6 +2,7 @@ package com.enlighten.lan_tic_tac_toe.screen;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -44,6 +45,8 @@ public class TTTMainActivity extends Activity implements View.OnClickListener {
 		}
 
 		private void onSetupSucessful() {
+
+			startActivity(new Intent(TTTMainActivity.this, GameActivity.class));
 
 		}
 

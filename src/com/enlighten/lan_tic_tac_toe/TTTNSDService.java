@@ -14,6 +14,7 @@ public class TTTNSDService {
 	private static final String TAG = TTTNSDService.class.getName();
 	private static ServerSocketChannel serverSocketChannel;
 	private static Thread selectorThread;
+	private static boolean userJoined = false;
 
 	public static void interrupService() {
 		selectorThread.interrupt();
@@ -57,11 +58,20 @@ public class TTTNSDService {
 									if (null != clientSocketChannel) {
 										TTTCommunicationChannel
 												.initChannel(clientSocketChannel);
+										//  close server socket as we do not want to listen for more users if second user is connected
+										selectionKey.cancel();
+										userJoined = true;
+										serverSocketChannel.close();
+										break;
 
 									}
 
 								}
 
+							}
+
+							if (userJoined) {
+								break;
 							}
 
 						} catch (IOException e) {

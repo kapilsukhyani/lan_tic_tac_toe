@@ -29,11 +29,16 @@ public class NSDUtility {
 	private static UserType userType;
 	private static final String TAG = NSDUtility.class.getName();
 
+	private static enum NSDStates {
+		Registering, Registered, Discovering, Discovered, Resolving, Resolved
+	}
+
 	private static ResolveListener resolveListener = new ResolveListener() {
 
 		@Override
 		public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
 			Log.d(TAG, "Not able to resolve service, " + errorCode);
+			setupListener.sendMessage(getSetupFailureMessage(errorCode));
 		}
 
 		@Override
