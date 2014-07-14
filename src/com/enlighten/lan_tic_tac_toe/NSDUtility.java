@@ -2,6 +2,7 @@ package com.enlighten.lan_tic_tac_toe;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import android.content.Context;
@@ -30,8 +31,10 @@ public class NSDUtility {
 	private static final String TAG = NSDUtility.class.getName();
 
 	private static enum NSDStates {
-		Registering, Registered, Discovering, Discovered, Resolving, Resolved
+		Registering, Registered, UnRegistered, Discovering, Discovered, Resolving, Resolved
 	}
+
+	private static NSDStates nsdState;
 
 	private static ResolveListener resolveListener = new ResolveListener() {
 
@@ -72,12 +75,39 @@ public class NSDUtility {
 			socketChannel.configureBlocking(true);
 			socketChannel.connect(new InetSocketAddress(serviceInfo.getHost(),
 					serviceInfo.getPort()));
-
+			sendInit(socketChannel);
 			return socketChannel;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;
+
+	}
+
+	private static void sendInit(final SocketChannel socketChannel) {
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				String command = "Init";
+				try {
+					
+					Log.d(TAG, "Sending init");
+					ByteBuffer buffer = ByteBuffer.allocate(command.getBytes().length);
+					buffer.clear();
+					buffer.put(command.getBytes());
+					buffer.flip();
+
+					while (buffer.hasRemaining()) {
+						socketChannel.write(buffer);
+					}
+					buffer.clear();
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
 
 	}
 
@@ -92,12 +122,14 @@ public class NSDUtility {
 
 		@Override
 		public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
+			nsdState = NSDStates.UnRegistered;
 			Log.d(TAG, "Service unregistration succesful");
 
 		}
 
 		@Override
 		public void onServiceRegistered(NsdServiceInfo serviceInfo) {
+			nsdState = NSDStates.Registered;
 			Log.d(TAG, "Service registration succesful, service listening on "
 					+ serviceInfo.getHost() + ":" + serviceInfo.getPort());
 			Log.d(TAG, "service name " + serviceInfo.getServiceName());
@@ -124,16 +156,19 @@ public class NSDUtility {
 		@Override
 		public void onStartDiscoveryFailed(String serviceType, int errorCode) {
 			Log.d(TAG, "Discovery failed with error code, " + errorCode);
+			nsdState = NSDStates.Discovered;
 			setupListener.sendMessage(getSetupFailureMessage(errorCode));
 		}
 
 		@Override
 		public void onServiceLost(NsdServiceInfo serviceInfo) {
+			nsdState = NSDStates.Discovered;
 			Log.d(TAG, "Service lost");
 		}
 
 		@Override
 		public void onServiceFound(NsdServiceInfo serviceInfo) {
+			nsdState = NSDStates.Discovered;
 			Log.d(TAG, "found " + serviceInfo);
 			if (serviceInfo.getServiceName().equals(
 					NSDUtility.nsdServiceInfo.getServiceName())) {
@@ -143,6 +178,7 @@ public class NSDUtility {
 
 		@Override
 		public void onDiscoveryStarted(String serviceType) {
+			nsdState = NSDStates.Discovering;
 			Log.d(TAG, "Discovery started");
 		}
 
@@ -174,13 +210,18 @@ public class NSDUtility {
 
 	public static void stop() {
 		if (NSDUtility.userType.equals(UserType.FirstUser)) {
+			if (nsdState == NSDStates.Registered) {
+				NSDUtility.unResgiterService();
+			}
 		} else if (NSDUtility.userType.equals(UserType.SecondUser)) {
+
 		}
 	}
 
 	public static void startAndRegisterService() {
 		if (TTTNSDService.initializeServcie()) {
 			nsdServiceInfo.setPort(TTTNSDService.getServicePort());
+			nsdState = NSDStates.Registering;
 			NSDUtility.nsdManager.registerService(nsdServiceInfo,
 					NsdManager.PROTOCOL_DNS_SD, registrationListener);
 		} else {
@@ -202,9 +243,8 @@ public class NSDUtility {
 		return message;
 	}
 
-	public static void unResgiterService(Context context,
-			RegistrationListener listener) {
-		getNsdManager(context).unregisterService(listener);
+	public static void unResgiterService() {
+		NSDUtility.nsdManager.unregisterService(registrationListener);
 	}
 
 	public static void discoverService(DiscoveryListener listener) {

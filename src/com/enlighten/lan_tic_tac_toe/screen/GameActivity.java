@@ -7,6 +7,7 @@ import android.os.Message;
 import android.view.View;
 import android.view.View.OnClickListener;
 
+import com.enlighten.lan_tic_tac_toe.NSDUtility;
 import com.enlighten.lan_tic_tac_toe.R;
 import com.enlighten.lan_tic_tac_toe.TTTCommunicationChannel;
 import com.enlighten.lan_tic_tac_toe.Util;
@@ -22,7 +23,8 @@ public class GameActivity extends Activity {
 			super.handleMessage(msg);
 
 			if (msg.what == CHANNEL_READY) {
-				Util.showToast(GameActivity.this, "Channel is ready");
+				Util.showToast(GameActivity.this, "Channel is ready: got "
+						+ msg.obj);
 			}
 		}
 	}
@@ -40,17 +42,9 @@ public class GameActivity extends Activity {
 
 					@Override
 					public void run() {
-						try {
-							System.out.println("client got :: "
-									+ TTTCommunicationChannel.readCommand());
-							Thread.sleep(500);
-							System.out.println("Client writing: "
-									+ TTTCommunicationChannel
-											.writeCommand("client"));
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+
+						System.out.println("Client writing: ");
+						TTTCommunicationChannel.sendCommand("client");
 
 					}
 				}).start();
@@ -65,17 +59,8 @@ public class GameActivity extends Activity {
 
 					@Override
 					public void run() {
-						try {
-							System.out.println("server got :: "
-									+ TTTCommunicationChannel.readCommand());
-							Thread.sleep(500);
-							System.out.println("server writing: "
-									+ TTTCommunicationChannel
-											.writeCommand("client"));
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+						System.out.println("server writing: ");
+						TTTCommunicationChannel.sendCommand("server");
 
 					}
 				}).start();
@@ -89,4 +74,9 @@ public class GameActivity extends Activity {
 
 	}
 
+	@Override
+	protected void onStop() {
+		super.onStop();
+		NSDUtility.stop();
+	}
 }

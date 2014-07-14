@@ -6,10 +6,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import com.enlighten.lan_tic_tac_toe.screen.GameActivity.ChannelReadyListener;
 
@@ -17,13 +20,23 @@ public class TTTCommunicationChannel {
 
 	private static boolean ready = false;
 	private static SocketChannel socketChannel;
-	private static Thread channelSelectionThread;
-	private static Selector selector;
-	private static SelectionKey channelSelectionKey;
-	private static final int interestSet = SelectionKey.OP_READ
-			| SelectionKey.OP_WRITE;
+	private static Thread channelReadThread, channelWriteThread;
+
+	private static Selector readSelector, writeSelector;
+	private static SelectionKey channelReadSelectionKey,
+			channelWriteSelectionKey;
 	private static final String TAG = TTTCommunicationChannel.class.getName();
 	private static Handler readWriteReadyListener;
+
+	private static List<String> commandQueue = new ArrayList<String>();
+
+	public static void sendCommand(String message) {
+		synchronized (commandQueue) {
+			commandQueue.add(message);
+			commandQueue.notifyAll();
+		}
+
+	}
 
 	public static void initChannel(final SocketChannel socketChannel) {
 
@@ -31,37 +44,45 @@ public class TTTCommunicationChannel {
 			TTTCommunicationChannel.socketChannel = socketChannel;
 
 			socketChannel.configureBlocking(false);
-			selector = Selector.open();
-			channelSelectionKey = socketChannel.register(selector, interestSet);
+			readSelector = Selector.open();
+			writeSelector = Selector.open();
+			channelReadSelectionKey = socketChannel.register(readSelector,
+					SelectionKey.OP_READ);
+			channelWriteSelectionKey = socketChannel.register(writeSelector,
+					SelectionKey.OP_WRITE);
 
-			channelSelectionThread = new Thread(new ChannelSelectionRunnable());
-
-			channelSelectionThread.start();
+			channelReadThread = new Thread(new ChannelReadRunnable());
+			channelReadThread.start();
+			channelWriteThread = new Thread(new ChannelWriteRunnable());
+			channelWriteThread.start();
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private static class ChannelSelectionRunnable implements Runnable {
+	private static class ChannelReadRunnable implements Runnable {
 
 		@Override
 		public void run() {
 
 			try {
+
 				while (true && !Thread.interrupted()) {
-					if (selector.select() > 0) {
-						Set<SelectionKey> selectedKeys = selector
+					if (readSelector.select() > 0
+							|| readSelector.selectedKeys().size() > 0) {
+						Set<SelectionKey> selectedKeys = readSelector
 								.selectedKeys();
 
 						for (SelectionKey selectionKey : selectedKeys) {
-							if (selectionKey.interestOps() == interestSet
-									&& selectionKey.equals(channelSelectionKey)) {
+							if (selectionKey.isReadable()
+									&& selectionKey
+											.equals(channelReadSelectionKey)) {
 
 								synchronized (TTTCommunicationChannel.class) {
 									try {
 										ready = true;
-										notifyListener();
+										notifyListener(readCommand());
 										TTTCommunicationChannel.class.wait();
 									} catch (InterruptedException e) {
 										e.printStackTrace();
@@ -70,8 +91,15 @@ public class TTTCommunicationChannel {
 								}
 
 							}
+
 						}
 
+					} else {
+						try {
+							Thread.sleep(2000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 
@@ -83,18 +111,68 @@ public class TTTCommunicationChannel {
 
 	}
 
+	private static class ChannelWriteRunnable implements Runnable {
+		@Override
+		public void run() {
+			try {
+				while (true && !Thread.interrupted()) {
+
+					// selector may return 0 even when socketchannel is ready to
+					// be written because its state has not been changed since
+					// last select
+					if (writeSelector.select() > 0
+							|| writeSelector.selectedKeys().size() > 0) {
+						Set<SelectionKey> selectedKeys = writeSelector
+								.selectedKeys();
+
+						for (SelectionKey selectionKey : selectedKeys) {
+							if (selectionKey.isWritable()
+									&& selectionKey
+											.equals(channelWriteSelectionKey)) {
+
+								synchronized (commandQueue) {
+									try {
+										while (commandQueue.isEmpty()) {
+											commandQueue.wait();
+										}
+
+										if (writeCommand(commandQueue.get(0))) {
+											commandQueue.remove(0);
+											synchronized (TTTCommunicationChannel.class) {
+												TTTCommunicationChannel.class
+														.notifyAll();
+											}
+										}
+
+									} catch (InterruptedException e) {
+										e.printStackTrace();
+									}
+								}
+
+							}
+						}
+
+					}
+				}
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public static synchronized boolean isCommunicationChannelReady(
 			Handler readWriteReadyListener) {
 		TTTCommunicationChannel.readWriteReadyListener = readWriteReadyListener;
 		return ready;
 	}
 
-	private static void notifyListener() {
+	private static void notifyListener(String data) {
 
 		if (null != readWriteReadyListener) {
-			readWriteReadyListener
-					.sendMessage(Message.obtain(readWriteReadyListener,
-							ChannelReadyListener.CHANNEL_READY));
+			readWriteReadyListener.sendMessage(Message.obtain(
+					readWriteReadyListener, ChannelReadyListener.CHANNEL_READY,
+					data));
 		}
 
 	}
@@ -106,7 +184,7 @@ public class TTTCommunicationChannel {
 	 * 
 	 * @return the command read
 	 */
-	public static String readCommand() {
+	private static String readCommand() {
 		String result = null;
 		try {
 			ByteBuffer buf = ByteBuffer.allocate(48);
@@ -117,7 +195,6 @@ public class TTTCommunicationChannel {
 				buf.flip(); // make buffer ready for read
 				while (buf.hasRemaining()) {
 					byteArrayOutputStream.write(buf.get()); // read 1 byte at a
-															// time
 				}
 
 				buf.clear(); // make buffer ready for writing
@@ -140,8 +217,8 @@ public class TTTCommunicationChannel {
 	 * @param command
 	 * @return
 	 */
-	public static boolean writeCommand(String command) {
-
+	private static boolean writeCommand(String command) {
+		Log.d(TAG, "Writing command " + command);
 		boolean written = false;
 		try {
 			ByteBuffer buffer = ByteBuffer.allocate(command.getBytes().length);
@@ -154,10 +231,6 @@ public class TTTCommunicationChannel {
 			}
 			buffer.clear();
 			written = true;
-			synchronized (TTTCommunicationChannel.class) {
-				ready = false;
-				TTTCommunicationChannel.class.notifyAll();
-			}
 
 		} catch (IOException e) {
 			e.printStackTrace();
