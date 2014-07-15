@@ -11,10 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
-
-import com.enlighten.lan_tic_tac_toe.screen.GameActivity.ChannelReadyListener;
 
 public class TTTCommunicationChannel {
 
@@ -26,9 +23,10 @@ public class TTTCommunicationChannel {
 	private static SelectionKey channelReadSelectionKey,
 			channelWriteSelectionKey;
 	private static final String TAG = TTTCommunicationChannel.class.getName();
-	private static Handler readWriteReadyListener;
+	private static Handler uiHandler;
 
 	private static List<String> commandQueue = new ArrayList<String>();
+	private static OnRemoteChangeListener remoteChangeListener;
 
 	public static void sendCommand(String message) {
 		synchronized (commandQueue) {
@@ -36,6 +34,11 @@ public class TTTCommunicationChannel {
 			commandQueue.notifyAll();
 		}
 
+	}
+
+	public static void registerOnRemoteChangeListener(
+			OnRemoteChangeListener remoteChangeListener) {
+		TTTCommunicationChannel.remoteChangeListener = remoteChangeListener;
 	}
 
 	public static void initChannel(final SocketChannel socketChannel) {
@@ -105,6 +108,13 @@ public class TTTCommunicationChannel {
 
 			} catch (IOException e) {
 				e.printStackTrace();
+			} finally {
+				try {
+					readSelector.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 
 		}
@@ -136,12 +146,38 @@ public class TTTCommunicationChannel {
 											commandQueue.wait();
 										}
 
-										if (writeCommand(commandQueue.get(0))) {
-											commandQueue.remove(0);
+										final String command = commandQueue
+												.get(0);
+										if (writeCommand(command)) {
+											commandQueue.remove(command);
+
+											postRunnableToUiHandler(new Runnable() {
+
+												@Override
+												public void run() {
+													remoteChangeListener
+															.onSentToRemoteSuccess(GameProtocol
+																	.getSctionNoFromCommand(command));
+
+												}
+											});
+
 											synchronized (TTTCommunicationChannel.class) {
 												TTTCommunicationChannel.class
 														.notifyAll();
 											}
+										} else {
+											postRunnableToUiHandler(new Runnable() {
+
+												@Override
+												public void run() {
+													remoteChangeListener
+															.onSentToRemoteFailed(GameProtocol
+																	.getSctionNoFromCommand(command));
+
+												}
+											});
+
 										}
 
 									} catch (InterruptedException e) {
@@ -157,22 +193,34 @@ public class TTTCommunicationChannel {
 
 			} catch (IOException e) {
 				e.printStackTrace();
+			} finally {
+				try {
+					writeSelector.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}
 
 	public static synchronized boolean isCommunicationChannelReady(
-			Handler readWriteReadyListener) {
-		TTTCommunicationChannel.readWriteReadyListener = readWriteReadyListener;
+			Handler readWriteReadyListener, OnRemoteChangeListener remoteChangeListener) {
+		TTTCommunicationChannel.uiHandler = readWriteReadyListener;
+		TTTCommunicationChannel.remoteChangeListener =remoteChangeListener;
 		return ready;
 	}
 
 	private static void notifyListener(String data) {
 
-		if (null != readWriteReadyListener) {
-			readWriteReadyListener.sendMessage(Message.obtain(
-					readWriteReadyListener, ChannelReadyListener.CHANNEL_READY,
-					data));
+		if (null != uiHandler && null != remoteChangeListener) {
+			/*
+			 * readWriteReadyListener.sendMessage(Message.obtain(
+			 * readWriteReadyListener, ChannelReadyListener.CHANNEL_READY,
+			 * data));
+			 */
+
+			GameProtocol.notifyListener(data, uiHandler, remoteChangeListener);
 		}
 
 	}
@@ -237,6 +285,28 @@ public class TTTCommunicationChannel {
 		}
 
 		return written;
+	}
+
+	public static void interrupt() {
+		commandQueue.removeAll(commandQueue);
+		commandQueue = null;
+		ready = false;
+		remoteChangeListener = null;
+		uiHandler = null;
+		channelReadThread.interrupt();
+		channelWriteThread.interrupt();
+		try {
+			socketChannel.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private static void postRunnableToUiHandler(Runnable runnable) {
+		if (null != uiHandler && null != remoteChangeListener) {
+			uiHandler.post(runnable);
+		}
 	}
 
 }

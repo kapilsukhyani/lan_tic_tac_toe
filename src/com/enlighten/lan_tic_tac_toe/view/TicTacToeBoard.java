@@ -6,18 +6,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TableLayout;
 import android.widget.TableRow;
-import android.widget.Toast;
 
+import com.enlighten.lan_tic_tac_toe.GameProtocol;
 import com.enlighten.lan_tic_tac_toe.OnRemoteChangeListener;
 import com.enlighten.lan_tic_tac_toe.R;
-import com.enlighten.lan_tic_tac_toe.TTTApplication.UserType;
+import com.enlighten.lan_tic_tac_toe.TTTCommunicationChannel;
+import com.enlighten.lan_tic_tac_toe.Util;
 
 public class TicTacToeBoard extends TableLayout implements
 		OnRemoteChangeListener {
 	private boolean locked = false;
 	private TicTacToeSection[] sections = new TicTacToeSection[9];
-
-	private UserType localUsertype;
 
 	public TicTacToeBoard(Context context) {
 		super(context);
@@ -61,8 +60,8 @@ public class TicTacToeBoard extends TableLayout implements
 				sections[index3].setBoard(this);
 
 				sections[index1].setSectionIndex(index1);
-				sections[index3].setSectionIndex(index2);
-				sections[index2].setSectionIndex(index3);
+				sections[index2].setSectionIndex(index2);
+				sections[index3].setSectionIndex(index3);
 			}
 
 		}
@@ -81,40 +80,17 @@ public class TicTacToeBoard extends TableLayout implements
 		return locked;
 	}
 
-	/**
-	 * Start the game if you are first player, it will lock the board till next
-	 * user arrives
-	 */
-	public void startGame() {
-		this.localUsertype = UserType.FirstUser;
-		this.lock();
-	}
-
-	/**
-	 * Join the game if you are second user, it will notify the first user that
-	 * second user is ready, it will lock the board unless first user plays its
-	 * turn
-	 */
-	public void joinGame() {
-		this.localUsertype = UserType.SecondUser;
-		this.lock();
-		sendJoinedGameNotification();
-	}
-
-	private void sendJoinedGameNotification() {
-
-	}
-
 	@Override
 	public void onRemoteWon(int sectionNo) {
 		sections[sectionNo].onRemoteTap();
-		Toast.makeText(getContext(), "Remote user won the game", 3000).show();
+		Util.showToast(getContext(), "Remote user won the game");
 
 	}
 
 	@Override
 	public void onRemoteMarked(int sectionNo) {
 		sections[sectionNo].onRemoteTap();
+		Util.showToast(getContext(), "Its your turn now");
 		this.unLock();
 
 	}
@@ -122,6 +98,8 @@ public class TicTacToeBoard extends TableLayout implements
 	@Override
 	public void onRemoteReady() {
 		this.unLock();
+		Util.showToast(getContext(),
+				"Board is unlocked as remote user joined the game");
 	}
 
 	/**
@@ -132,11 +110,86 @@ public class TicTacToeBoard extends TableLayout implements
 	 */
 	public void sectionMarked(int sectionNo) {
 		this.lock();
-		sendSectionMarkedNotification(sectionNo);
+		if (hasUserWon(sectionNo)) {
+			Util.showToast(getContext(), "Congratulations, you won the game");
+			sendUserWonNotification(sectionNo);
+		} else {
+			sendSectionMarkedNotification(sectionNo);
+		}
+	}
+
+	private void sendUserWonNotification(int sectionNo) {
+		String command = GameProtocol.USER_WON_COMMAND
+				.replace(GameProtocol.SECTION_NO_PLACE_HOLDER,
+						String.valueOf(sectionNo));
+		TTTCommunicationChannel.sendCommand(command);
 	}
 
 	private void sendSectionMarkedNotification(int sectionNo) {
+		String command = GameProtocol.MARK_SECTION_COMMAND
+				.replace(GameProtocol.SECTION_NO_PLACE_HOLDER,
+						String.valueOf(sectionNo));
+		TTTCommunicationChannel.sendCommand(command);
+	}
 
+	private boolean hasUserWon(int sectionNo) {
+		return (commonChekedTypeRow(sectionNo)
+				|| commonCheckedTypeCol(sectionNo) || commonCheckedTypeDiagonal(sectionNo));
+	}
+
+	private boolean commonChekedTypeRow(int sectionNo) {
+		int rowNo = sectionNo / 3;
+		rowNo = rowNo + 2 * rowNo;
+		boolean commonRow = true;
+		for (int i = rowNo; i <= rowNo + 1; i++) {
+			commonRow = commonRow
+					&& sections[i].getSectionState().equals(
+							sections[i + 1].getSectionState());
+		}
+
+		return commonRow;
+	}
+
+	private boolean commonCheckedTypeCol(int sectionNo) {
+		int colNo = sectionNo % 3;
+		boolean commonCol = true;
+		for (int i = colNo; i <= colNo + 3; i += 3) {
+			commonCol = commonCol
+					&& sections[i].getSectionState().equals(
+							sections[i + 3].getSectionState());
+		}
+
+		return commonCol;
+	}
+
+	private boolean commonCheckedTypeDiagonal(int sectionNo) {
+		if (sectionNo != 0 && sectionNo != 4 && sectionNo != 7) {
+			return false;
+		} else {
+			if (sections[0].getSectionState().equals(
+					sections[4].getSectionState())
+					&& sections[4].getSectionState().equals(
+							sections[7].getSectionState())) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+
+	@Override
+	public void onSentToRemoteSuccess(int sectionNo) {
+
+		// only if it was a mark command
+		if (sectionNo != -1) {
+
+		}
+
+	}
+
+	@Override
+	public void onSentToRemoteFailed(int sectionNo) {
+		sections[sectionNo].onRemoteSentFailed();
 	}
 
 }

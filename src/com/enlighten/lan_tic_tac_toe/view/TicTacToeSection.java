@@ -12,23 +12,24 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.enlighten.lan_tic_tac_toe.OnRemoteUserTap;
+import com.enlighten.lan_tic_tac_toe.TTTApplication;
+import com.enlighten.lan_tic_tac_toe.TTTApplication.UserType;
 
 public class TicTacToeSection extends Button implements OnGestureListener,
 		OnDoubleTapListener, OnTouchListener, OnRemoteUserTap {
-	private int section_position_x;
-	private int section_position_y;
 	private GestureDetector mGestureDetector;
 	private TicTacToeBoard board;
-	private boolean checked = false;
 	private int sectionIndex;
+	private final int FIRST_USER_IMAGE = android.R.color.holo_blue_dark,
+			SECOND_USER_IMAGE = android.R.color.holo_green_dark,
+			NEUTRAL_BACKGROUND = android.R.color.holo_purple;
+
+	private int localSectionCheckedBackground, remoteSectionCheckedBackground;
+	private SectionState localSectionCheckedState, remoteSectionCheckedState;
 
 	public static enum SectionState {
-		NEUTRAL, CHECKED
+		NEUTRAL, CHECKED_POSITIVE, CHECKED_NEGATIVE
 	};
-
-	public static enum CheckedType {
-		POSITIVE, NEGATIVE
-	}
 
 	private SectionState sectionState;
 
@@ -48,12 +49,24 @@ public class TicTacToeSection extends Button implements OnGestureListener,
 	}
 
 	private void init() {
-		setOnTouchListener(this);
-		mGestureDetector = new GestureDetector(getContext(), this);
-	}
+		if (!isInEditMode()) {
+			setOnTouchListener(this);
+			sectionState = SectionState.NEUTRAL;
+			if (((TTTApplication) getContext().getApplicationContext())
+					.getUserType().equals(UserType.FirstUser)) {
+				localSectionCheckedState = SectionState.CHECKED_POSITIVE;
+				remoteSectionCheckedState = SectionState.CHECKED_NEGATIVE;
+				localSectionCheckedBackground = FIRST_USER_IMAGE;
+				remoteSectionCheckedBackground = SECOND_USER_IMAGE;
+			} else {
+				localSectionCheckedState = SectionState.CHECKED_NEGATIVE;
+				remoteSectionCheckedState = SectionState.CHECKED_POSITIVE;
+				localSectionCheckedBackground = SECOND_USER_IMAGE;
+				remoteSectionCheckedBackground = FIRST_USER_IMAGE;
 
-	public boolean isChecked() {
-		return checked;
+			}
+			mGestureDetector = new GestureDetector(getContext(), this);
+		}
 	}
 
 	public void setBoard(TicTacToeBoard board) {
@@ -64,19 +77,8 @@ public class TicTacToeSection extends Button implements OnGestureListener,
 		this.sectionIndex = sectionIndex;
 	}
 
-	private void setState(SectionState state) {
-		if (sectionState.NEUTRAL == state) {
-			this.sectionState = state;
-			invalidate();
-		}
-	}
-
-	public int getSection_position_x() {
-		return section_position_x;
-	}
-
-	public int getSection_position_y() {
-		return section_position_y;
+	public SectionState getSectionState() {
+		return sectionState;
 	}
 
 	@Override
@@ -87,13 +89,23 @@ public class TicTacToeSection extends Button implements OnGestureListener,
 	@Override
 	public boolean onDoubleTap(MotionEvent e) {
 		Toast.makeText(getContext(), "double_tapped", 2000).show();
-		if (isChecked()) {
+		if (!sectionState.equals(SectionState.NEUTRAL)) {
 			Toast.makeText(getContext(), "The section is already marked", 2000)
 					.show();
 			return false;
 		}
+
+		changeSectionState(localSectionCheckedBackground,
+				localSectionCheckedState);
 		board.sectionMarked(sectionIndex);
+
 		return true;
+	}
+
+	private void changeSectionState(int background, SectionState sectionState) {
+		setBackgroundColor(getContext().getResources().getColor(background));
+		this.sectionState = sectionState;
+		invalidate();
 	}
 
 	@Override
@@ -143,5 +155,11 @@ public class TicTacToeSection extends Button implements OnGestureListener,
 
 	@Override
 	public void onRemoteTap() {
+		changeSectionState(remoteSectionCheckedBackground,
+				remoteSectionCheckedState);
+	}
+
+	public void onRemoteSentFailed() {
+		changeSectionState(NEUTRAL_BACKGROUND, SectionState.NEUTRAL);
 	}
 }

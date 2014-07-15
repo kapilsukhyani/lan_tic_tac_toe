@@ -11,10 +11,20 @@ public class TTTApplication extends Application {
 		FirstUser, SecondUser
 	}
 
+	public UserType userType;
+	
+	public UserType getUserType() {
+		return userType;
+	}
+	
+	public void setUserType(UserType userType) {
+		this.userType = userType;
+	}
+	
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		NSDUtility.init(getApplicationContext());
+		NSDUtility.init(this);
 	}
 
 }

@@ -29,6 +29,7 @@ public class NSDUtility {
 	private static NsdManager nsdManager;
 	private static UserType userType;
 	private static final String TAG = NSDUtility.class.getName();
+	private static Context context;
 
 	private static enum NSDStates {
 		Registering, Registered, UnRegistered, Discovering, Discovered, Resolving, Resolved
@@ -89,9 +90,9 @@ public class NSDUtility {
 
 			@Override
 			public void run() {
-				String command = "Init";
+				String command = GameProtocol.USER_READY_COMMAND;
 				try {
-					
+
 					Log.d(TAG, "Sending init");
 					ByteBuffer buffer = ByteBuffer.allocate(command.getBytes().length);
 					buffer.clear();
@@ -190,6 +191,7 @@ public class NSDUtility {
 	};
 
 	public static void init(Context context) {
+		NSDUtility.context = context;
 		nsdManager = getNsdManager(context);
 		nsdServiceInfo = new NsdServiceInfo();
 		nsdServiceInfo.setServiceName(TTTApplication.TTT_SERVICE);
@@ -197,6 +199,7 @@ public class NSDUtility {
 	}
 
 	public static void start(UserType userType, SetupListener setupListener) {
+		((TTTApplication) context).setUserType(userType);
 		NSDUtility.setupListener = setupListener;
 		if (userType.equals(UserType.FirstUser)) {
 			NSDUtility.userType = UserType.FirstUser;

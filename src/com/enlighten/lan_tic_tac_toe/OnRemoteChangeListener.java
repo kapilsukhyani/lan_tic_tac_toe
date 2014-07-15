@@ -24,5 +24,16 @@ public interface OnRemoteChangeListener {
 	 */
 
 	public void onRemoteReady();
+	
+	
+	/**
+	 * Callback to be called when command is sent to remote user successfully 
+	 * @param sectionNo
+	 */
+	public void onSentToRemoteSuccess(int sectionNo);
+	
+	
+	
+	public void onSentToRemoteFailed(int sectionNo);
 
 }

@@ -14,6 +14,7 @@
         android:layout_weight="1"
         android:background="@android:drawable/alert_dark_frame"
         android:divider="@android:color/holo_red_dark"
+        android:dividerPadding="5dp"
         android:orientation="horizontal"
         android:showDividers="middle"
         android:weightSum="3" >
@@ -22,24 +23,27 @@
             android:id="@+id/section1"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@android:drawable/alert_light_frame" >
+            android:background="@android:color/holo_purple" >
         </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
 
         <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
             android:id="@+id/section2"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@android:drawable/alert_light_frame" >
+            android:background="@android:color/holo_purple" >
         </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
 
         <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
             android:id="@+id/section3"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@android:drawable/alert_light_frame" >
+            android:background="@android:color/holo_purple" >
         </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
     </TableRow>
 
@@ -50,6 +54,7 @@
         android:layout_weight="1"
         android:background="@android:drawable/alert_dark_frame"
         android:divider="@android:color/holo_red_dark"
+        android:dividerPadding="5dp"
         android:orientation="horizontal"
         android:showDividers="middle"
         android:weightSum="3" >
@@ -58,24 +63,27 @@
             android:id="@+id/section4"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@android:drawable/alert_light_frame" >
+            android:background="@android:color/holo_purple" >
         </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
 
         <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
             android:id="@+id/section5"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@android:drawable/alert_light_frame" >
+            android:background="@android:color/holo_purple" >
         </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
 
         <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
             android:id="@+id/section6"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@android:drawable/alert_light_frame" >
+            android:background="@android:color/holo_purple" >
         </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
     </TableRow>
 
@@ -86,6 +94,7 @@
         android:layout_weight="1"
         android:background="@android:drawable/alert_dark_frame"
         android:divider="@android:color/holo_red_dark"
+        android:dividerPadding="5dp"
         android:orientation="horizontal"
         android:showDividers="middle"
         android:weightSum="3" >
@@ -94,24 +103,27 @@
             android:id="@+id/section7"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@android:drawable/alert_light_frame" >
+            android:background="@android:color/holo_purple" >
         </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
 
         <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
             android:id="@+id/section8"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@android:drawable/alert_light_frame" >
+            android:background="@android:color/holo_purple" >
         </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
 
         <com.enlighten.lan_tic_tac_toe.view.TicTacToeSection
             android:id="@+id/section9"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@android:drawable/alert_light_frame" >
+            android:background="@android:color/holo_purple" >
         </com.enlighten.lan_tic_tac_toe.view.TicTacToeSection>
     </TableRow>
 

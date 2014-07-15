@@ -4,13 +4,12 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.View;
-import android.view.View.OnClickListener;
 
 import com.enlighten.lan_tic_tac_toe.NSDUtility;
 import com.enlighten.lan_tic_tac_toe.R;
 import com.enlighten.lan_tic_tac_toe.TTTCommunicationChannel;
 import com.enlighten.lan_tic_tac_toe.Util;
+import com.enlighten.lan_tic_tac_toe.view.TicTacToeBoard;
 
 public class GameActivity extends Activity {
 
@@ -29,46 +28,16 @@ public class GameActivity extends Activity {
 		}
 	}
 
+	private TicTacToeBoard ticTacToeBoard;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_game);
+		ticTacToeBoard = (TicTacToeBoard) findViewById(R.id.board);
 
-		findViewById(R.id.client).setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				new Thread(new Runnable() {
-
-					@Override
-					public void run() {
-
-						System.out.println("Client writing: ");
-						TTTCommunicationChannel.sendCommand("client");
-
-					}
-				}).start();
-			}
-		});
-
-		findViewById(R.id.server).setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				new Thread(new Runnable() {
-
-					@Override
-					public void run() {
-						System.out.println("server writing: ");
-						TTTCommunicationChannel.sendCommand("server");
-
-					}
-				}).start();
-			}
-		});
-
-		if (TTTCommunicationChannel
-				.isCommunicationChannelReady(new ChannelReadyListener())) {
+		if (TTTCommunicationChannel.isCommunicationChannelReady(
+				new ChannelReadyListener(), ticTacToeBoard)) {
 			Util.showToast(GameActivity.this, "Channel is ready");
 		}
 
@@ -78,5 +47,6 @@ public class GameActivity extends Activity {
 	protected void onStop() {
 		super.onStop();
 		NSDUtility.stop();
+		TTTCommunicationChannel.interrupt();
 	}
 }
