@@ -25,7 +25,7 @@ public class TTTCommunicationChannel {
 	private static final String TAG = TTTCommunicationChannel.class.getName();
 	private static Handler uiHandler;
 
-	private static List<String> commandQueue = new ArrayList<String>();
+	private static List<String> commandQueue= new ArrayList<String>();
 	private static OnRemoteChangeListener remoteChangeListener;
 
 	public static void sendCommand(String message) {
@@ -197,7 +197,6 @@ public class TTTCommunicationChannel {
 				try {
 					writeSelector.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -205,9 +204,10 @@ public class TTTCommunicationChannel {
 	}
 
 	public static synchronized boolean isCommunicationChannelReady(
-			Handler readWriteReadyListener, OnRemoteChangeListener remoteChangeListener) {
+			Handler readWriteReadyListener,
+			OnRemoteChangeListener remoteChangeListener) {
 		TTTCommunicationChannel.uiHandler = readWriteReadyListener;
-		TTTCommunicationChannel.remoteChangeListener =remoteChangeListener;
+		TTTCommunicationChannel.remoteChangeListener = remoteChangeListener;
 		return ready;
 	}
 
@@ -288,8 +288,7 @@ public class TTTCommunicationChannel {
 	}
 
 	public static void interrupt() {
-		commandQueue.removeAll(commandQueue);
-		commandQueue = null;
+		commandQueue.clear();
 		ready = false;
 		remoteChangeListener = null;
 		uiHandler = null;
@@ -298,7 +297,6 @@ public class TTTCommunicationChannel {
 		try {
 			socketChannel.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

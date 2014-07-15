@@ -32,7 +32,7 @@ public class NSDUtility {
 	private static Context context;
 
 	private static enum NSDStates {
-		Registering, Registered, UnRegistered, Discovering, Discovered, Resolving, Resolved
+		Registering, Registered, UnRegistered, Discovering, Discovered, DisocverStopped, Resolved, Init
 	}
 
 	private static NSDStates nsdState;
@@ -50,6 +50,7 @@ public class NSDUtility {
 			Log.d(TAG, "Service resolved " + serviceInfo);
 			Log.d(TAG, "service ipaddress " + serviceInfo.getHost() + "  port "
 					+ serviceInfo.getPort());
+			nsdState = NSDStates.Resolved;
 			if (serviceInfo.getHost() != null) {
 				SocketChannel socketChannel = connectToService(serviceInfo);
 				if (null != socketChannel) {
@@ -185,12 +186,14 @@ public class NSDUtility {
 
 		@Override
 		public void onDiscoveryStopped(String serviceType) {
+			nsdState = NSDStates.DisocverStopped;
 			Log.d(TAG, "Discover stopped");
 		}
 
 	};
 
 	public static void init(Context context) {
+		nsdState = NSDStates.Init;
 		NSDUtility.context = context;
 		nsdManager = getNsdManager(context);
 		nsdServiceInfo = new NsdServiceInfo();
@@ -206,7 +209,7 @@ public class NSDUtility {
 			startAndRegisterService();
 		} else if (userType.equals(UserType.SecondUser)) {
 			NSDUtility.userType = UserType.SecondUser;
-			discoverService(discoveryListener);
+			discoverService();
 		}
 
 	}
@@ -217,8 +220,13 @@ public class NSDUtility {
 				NSDUtility.unResgiterService();
 			}
 		} else if (NSDUtility.userType.equals(UserType.SecondUser)) {
-
+			if (nsdState != NSDStates.DisocverStopped) {
+				NSDUtility.stopDiscovery();
+			}
 		}
+
+		setupListener = null;
+		userType = null;
 	}
 
 	public static void startAndRegisterService() {
@@ -250,13 +258,13 @@ public class NSDUtility {
 		NSDUtility.nsdManager.unregisterService(registrationListener);
 	}
 
-	public static void discoverService(DiscoveryListener listener) {
+	public static void discoverService() {
 		NSDUtility.nsdManager.discoverServices(SERVICE_TYPE,
-				NsdManager.PROTOCOL_DNS_SD, listener);
+				NsdManager.PROTOCOL_DNS_SD, discoveryListener);
 	}
 
-	public static void stopDiscovery(Context context, DiscoveryListener listener) {
-		getNsdManager(context).stopServiceDiscovery(listener);
+	public static void stopDiscovery() {
+		NSDUtility.nsdManager.stopServiceDiscovery(discoveryListener);
 	}
 
 	public static void resolveService(ResolveListener listener,

@@ -47,6 +47,7 @@ public class TTTMainActivity extends Activity implements View.OnClickListener {
 		private void onSetupSucessful() {
 
 			startActivity(new Intent(TTTMainActivity.this, GameActivity.class));
+			TTTMainActivity.this.finish();
 
 		}
 
@@ -123,6 +124,17 @@ public class TTTMainActivity extends Activity implements View.OnClickListener {
 
 	@Override
 	public void onBackPressed() {
+
+		// Util.showConfirmationDialog(this,
+		// "Are you sure you want to close this?",
+		// "Discovering first user.", new Runnable() {
+		//
+		// @Override
+		// public void run() {
+		// NSDUtility.stop();
+		// TTTMainActivity.this.finish();
+		// }
+		// });
 
 	}
 }

@@ -30,6 +30,7 @@ public class TicTacToeBoard extends TableLayout implements
 
 	public void init() {
 		if (!isInEditMode()) {
+			lock();
 			View board = ((LayoutInflater) getContext().getSystemService(
 					Context.LAYOUT_INFLATER_SERVICE)).inflate(
 					R.layout.tic_tac_toe_board, null);
