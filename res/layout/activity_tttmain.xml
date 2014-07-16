@@ -21,20 +21,21 @@
         android:layout_height="match_parent"
         android:layout_below="@id/title"
         android:gravity="center"
-        android:orientation="vertical" 
-        android:padding="15dp">
-        
-        <Button android:id="@+id/join_button"
-            android:layout_width="match_parent" android:layout_height="45dp"
-            android:text="@string/join_game"
-            />
-        
+        android:orientation="vertical"
+        android:padding="15dp" >
+
+        <Button
+            android:id="@+id/join_button"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="@string/join_game" />
+
         <Button
             android:id="@+id/start_button"
             android:layout_width="match_parent"
-            android:layout_height="45dp"
+            android:layout_height="55dp"
+            android:layout_marginTop="30dp"
             android:text="@string/start_game" />
-        
     </LinearLayout>
 
 </RelativeLayout>
